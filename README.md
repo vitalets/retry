@@ -12,7 +12,7 @@ import { withRetry, RetryFn } from '@vitalets/retry';
 
 const fn: RetryFn = async ({ signal }) => {
   const res = await fetch('https://example.com', { signal });
-  if (!res.ok) throw Error(`Status ${res.status} ${await res.text()}`);
+  if (!res.ok) throw new Error(`Status ${res.status} ${await res.text()}`);
   return res.json();
 };
 
