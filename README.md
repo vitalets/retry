@@ -14,7 +14,9 @@ const result = await withRetry(({ signal }) => fetch('https://example.com', { si
   retries: 5,
   delay: [ 100, 200, 500 ],   // or exponential { min: 100, factor: 2, max: 1000 }
   timeout: [ 300, 400, 1000 ] // or exponential { min: 300, factor: 2, max: 1000 }
-  onBeforeRetry: ({ e, retry, timeout }) => console.log(`${e?.message}. Retry #${retry} with timeout ${timeout}ms`),
+  onBeforeRetry: ({ e, retry, timeout }) => {
+    console.log(`${e?.message}. Retry #${retry} with timeout ${timeout}ms`);
+  }
 });
 ```
 
