@@ -2,6 +2,12 @@
   "name": "@vitalets/retry",
   "version": "1.0.0",
   "type": "module",
+  "main": "dist/index.js",
+  "files": [
+    "src",
+    "dist",
+    "README.md"
+  ],
   "scripts": {
     "lint": "eslint src test --ext .ts",
     "tsc": "tsc --noEmit",
