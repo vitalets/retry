@@ -2,6 +2,8 @@ import { RetryFn, RetryOptions } from './options.js';
 import { Series, seriesFactory } from './series.js';
 import { wait } from './utils.js';
 
+export { RetryFn, RetryOptions };
+
 export async function withRetry<T>(fn: RetryFn<T>, options: RetryOptions = {}) {
   return new WithRetry(fn, options).run();
 }
