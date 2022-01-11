@@ -109,8 +109,8 @@ class WithRetry<T> {
   }
 
   private async getTimeoutPromise(timeout: number) {
-    await wait(timeout);
-    throw new Error(`Timeout ${timeout}ms`);
+    // use .then() instead of await to return Promise<never> instead of Promise<void>
+    return wait(timeout).then(() => Promise.reject(new Error(`Timeout ${timeout}ms`)));
   }
 
   private isTotalTimeoutReached() {
