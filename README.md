@@ -8,9 +8,15 @@ Retry async function with exponential delay, timeouts and abort signals.
 
 ## Usage
 ```ts
-import { withRetry } from '@vitalets/retry';
+import { withRetry, RetryFn } from '@vitalets/retry';
 
-const result = await withRetry(({ signal }) => fetch('https://example.com', { signal }), {
+const fn: RetryFn = async ({ signal }) => {
+  const res = await fetch('https://example.com', { signal });
+  if (!res.ok) throw Error(`Status ${res.status} ${await res.text()}`);
+  return res.json();
+};
+
+const result = await withRetry(fn, {
   retries: 5,
   delay: [ 100, 200, 500 ],   // or exponential { min: 100, factor: 2, max: 1000 }
   timeout: [ 300, 400, 1000 ] // or exponential { min: 300, factor: 2, max: 1000 }
