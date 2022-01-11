@@ -19,6 +19,7 @@ class WithRetry<T> {
   timeoutSeries?: Series;
   retry = 0;
   startTime = 0;
+  fnAbortController?: AbortController;
 
   constructor(protected fn: RetryFn<T>, options: RetryOptions = {}) {
     this.options = Object.assign({}, defaults, options);
@@ -48,7 +49,8 @@ class WithRetry<T> {
 
   private async callFn() {
     const timeout = this.currentTimeout;
-    const fnPromise = this.fn({ timeout });
+    const { signal } = this.fnAbortController = new AbortController();
+    const fnPromise = this.fn({ timeout, signal });
     if (timeout) {
       const timeoutPromise = this.getTimeoutPromise(timeout);
       return Promise.race([ fnPromise, timeoutPromise ]);
@@ -58,19 +60,25 @@ class WithRetry<T> {
   }
 
   private async handleError(e: Error) {
-    // important: call prepareRetry() before shouldRetry()
-    // to have correct currentDelay for total timeout check.
+    this.fnAbortController?.abort();
+    if (this.stopRetryBeforeWait(e)) throw e;
     this.prepareRetry(e);
-    if (!this.shouldRetry(e)) throw e;
-    this.callBeforeRetry(e);
     await wait(this.currentDelay);
+    // check again as total timeout and total signal can block retry here
+    if (this.stopRetryAfterWait()) throw e;
+    this.callBeforeRetry(e);
   }
 
-  private shouldRetry(e: Error) {
-    return this.options.isRetryError(e)
-      && !this.isTotalTimeoutReached()
-      && !this.isRetriesReached()
-      && !this.isAborted();
+  private stopRetryBeforeWait(e: Error) {
+    return !this.options.isRetryError(e)
+      || this.isRetriesReached()
+      || this.isTotalTimeoutReached()
+      || this.isAborted();
+  }
+
+  private stopRetryAfterWait() {
+    return this.isTotalTimeoutReached()
+      || this.isAborted();
   }
 
   private prepareRetry(e: Error) {
@@ -105,12 +113,11 @@ class WithRetry<T> {
 
   private isTotalTimeoutReached() {
     const { totalTimeout } = this.options;
-    // considering currentDelay to check total timeout before waiting
-    return totalTimeout && (Date.now() + this.currentDelay - this.startTime) > totalTimeout;
+    return totalTimeout && (Date.now() - this.startTime) > totalTimeout;
   }
 
   private isRetriesReached() {
-    return this.retry > this.options.retries;
+    return this.retry >= this.options.retries;
   }
 
   private isAborted() {

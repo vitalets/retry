@@ -27,6 +27,7 @@ export interface BeforeRetryParams {
 }
 
 export interface RetryFnParams {
+  signal: AbortSignal;
   timeout?: number;
 }
 
