@@ -33,7 +33,7 @@ npm i @vitalets/retry
 > Note: this package is [ESM only](https://gist.github.com/sindresorhus/a39789f98801d908bbc7ff3ecc99d99c)
 
 ## Options
-tbd
+See [src/options.ts](https://github.com/vitalets/retry/blob/main/src/options.ts).
 
 ## Related
 * [exponential-backoff](https://github.com/coveooss/exponential-backoff)
